@@ -1,0 +1,94 @@
+import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class QuizApp {
+    private static final int QUESTION_TIME_LIMIT = 15; // Time limit per question in seconds
+    private static final int TOTAL_QUESTIONS = 3;
+    private static String[][] questions = {
+        {
+            "What is the capital of France?",
+            "a) Paris", "b) London", "c) Rome", "d) Berlin",
+            "a"
+        },
+        {
+            "What is the largest planet in our solar system?",
+            "a) Earth", "b) Jupiter", "c) Saturn", "d) Mars",
+            "b"
+        },
+        {
+            "Who wrote 'Hamlet'?",
+            "a) Charles Dickens", "b) Mark Twain", "c) William Shakespeare", "d) Jane Austen",
+            "c"
+        }
+    };
+    private static int score = 0;
+    private static int[] correctAnswers = new int[TOTAL_QUESTIONS];
+    private static int[] userAnswers = new int[TOTAL_QUESTIONS];
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        for (int i = 0; i < TOTAL_QUESTIONS; i++) {
+            displayQuestion(i);
+            boolean answered = getUserAnswer(scanner, i);
+            if (!answered) {
+                System.out.println("Time's up! Moving to the next question.");
+                userAnswers[i] = -1; // No answer given
+            }
+        }
+
+        displayResult();
+        scanner.close();
+    }
+
+    private static void displayQuestion(int questionIndex) {
+        System.out.println("Question " + (questionIndex + 1) + ":");
+        for (int i = 0; i < 5; i++) {
+            System.out.println(questions[questionIndex][i]);
+        }
+    }
+
+    private static boolean getUserAnswer(Scanner scanner, int questionIndex) {
+        Timer timer = new Timer();
+        boolean[] answered = {false};
+
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                if (!answered[0]) {
+                    answered[0] = true;
+                }
+            }
+        };
+        timer.schedule(task, QUESTION_TIME_LIMIT * 1000);
+
+        while (!answered[0]) {
+            System.out.print("Enter your answer (a, b, c, or d): ");
+            String userAnswer = scanner.next();
+            if ("abcd".contains(userAnswer) && userAnswer.length() == 1) {
+                answered[0] = true;
+                timer.cancel();
+                userAnswers[questionIndex] = userAnswer.charAt(0) - 'a';
+                if (userAnswer.equals(questions[questionIndex][5])) {
+                    score++;
+                    correctAnswers[questionIndex] = 1;
+                } else {
+                    correctAnswers[questionIndex] = 0;
+                }
+            } else {
+                System.out.println("Invalid answer. Please enter a, b, c, or d.");
+            }
+        }
+        return answered[0];
+    }
+
+    private static void displayResult() {
+        System.out.println("\nQuiz Result:");
+        System.out.println("Total Score: " + score + "/" + TOTAL_QUESTIONS);
+        System.out.println("Summary of answers:");
+        for (int i = 0; i < TOTAL_QUESTIONS; i++) {
+            System.out.println("Question " + (i + 1) + ": " + (correctAnswers[i] == 1 ? "Correct" : "Incorrect"));
+        }
+    }
+}
